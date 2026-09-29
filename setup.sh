@@ -149,10 +149,12 @@ if [ -f STATE.md ] && ! grep -q '^## Phases' STATE.md; then
   echo "note: STATE.md predates the pykit 0.4 tracker format. Ask Planck to migrate it (\"migrate STATE.md to .claude/pykit/templates/STATE.md\"), or replace it with that template."
 fi
 
-if ! grep -qxF '.pykit/' .gitignore 2>/dev/null; then
-  printf '.pykit/\n' >> .gitignore
-  echo "added .pykit/ to .gitignore"
-fi
+for entry in .pykit/ .playwright-mcp/; do
+  if ! grep -qxF "$entry" .gitignore 2>/dev/null; then
+    printf '%s\n' "$entry" >> .gitignore
+    echo "added $entry to .gitignore"
+  fi
+done
 
 command -v gh >/dev/null || echo "optional: install the GitHub CLI so Shipy can open PRs: brew install gh && gh auth login"
 

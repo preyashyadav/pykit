@@ -78,7 +78,7 @@ Optional first step: write your rough requirements into `SPEC.md`, in any form.
    - If you're not sure, choose *Other* and type `explain`. Planck briefs you from the project's own context and asks again.
    - If only your users or client can answer, choose **Park it: ask stakeholders**. The question is recorded in `SPEC.md` with a working assumption. `/pykit:planck questions` prints the full list of parked questions to take to your users.
 2. Planck writes `SPEC.md`, `PLAN.md` (architecture, quality gates, test layout, delivery), ADRs, **every** phase contract in `docs/phases/`, and the phase table in `STATE.md`.
-3. Read the contracts, then type `approve`.
+3. Read the contracts, then type `approve`. Planck has Shipy commit the approved plan to `main` (the repo's first commit, if it's new), so the phase branches start from it.
 
 ### Step 3: Run each phase
 
@@ -115,7 +115,7 @@ After the **last** phase, `/pykit:review` also runs a release check: Tessma runs
 | `/pykit:test N` | `tessma` | Write acceptance, E2E, and edge-case tests from the contract, in parallel with build |
 | `/pykit:verify N` | `tessma` | Gates, full suite, test-integrity check, real-app and browser QA. PASS/FAIL |
 | `/pykit:review N` | `revy`, then `summa`, `planck`, `shipy` | Close-out: review, report, sync later phases, commit. Release check after the last phase |
-| `/pykit:ship N` · `N merge` · `release [tag]` | `shipy` | Push and open a PR (or merge locally), finish the merge, tag a release |
+| `/pykit:ship plan` · `N` · `N merge` · `release [tag]` | `shipy` | Commit the approved plan on `main`; push and open a PR (or merge locally); finish the merge; tag a release |
 | `/pykit:status` | `summa` | Phase table and the exact next step |
 | `/pykit:start N` | all | One-terminal autopilot for a phase |
 | `/pykit:research <question>` | `sid` | Evidence-backed answer about the code or a library |
@@ -171,7 +171,7 @@ LSP plugins need their language-server binary on your PATH, for example `npm i -
 | `CLAUDE.md` | Adds a managed block between `<!-- pykit:begin -->` and `<!-- pykit:end -->` with the workflow and usage steps. Your other content is untouched |
 | `SPEC.md`, `PLAN.md`, `STATE.md`, `DECISIONS.md` | Created from templates if missing. Existing files are kept |
 | `docs/phases/` | Created. Holds each phase's contract, board, and report |
-| `.gitignore` | Adds `.pykit/` (QA screenshots and scratch files) |
+| `.gitignore` | Adds `.pykit/` (QA screenshots and scratch files) and `.playwright-mcp/` (Playwright MCP snapshots) |
 
 Commit these files. Anyone who clones the repo and trusts the folder is offered the same plugins automatically.
 

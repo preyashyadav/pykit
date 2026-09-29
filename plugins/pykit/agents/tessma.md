@@ -12,7 +12,7 @@ Your mode is in the request: `test`, `verify`, or `release`.
 
 1. **Phase.** Use the N you were given, or else the phase in `STATE.md` → Next. Read `docs/phases/phase-NN.md`: its Interfaces, How to run for tests, acceptance criteria, edge cases, and the `UI:` flag. Also read `CLAUDE.md` (routing table), the relevant parts of `SPEC.md`, `PLAN.md` (Quality gates, Test layout), and `docs/phases/phase-NN-board.md` (create it from `.claude/pykit/templates/board.md` if it's missing).
 2. **Checks by mode.**
-   - `test`: the contract is `approved`, and for N > 1 the previous phase is Merged.
+   - `test`: the contract is `approved`, and for N > 1 the previous phase is Merged. If the repo has no commits, or the approved plan files are uncommitted on the default branch, route to T1 `/pykit:ship plan`.
    - `verify`: Code ✅ and Passing ✅ in `STATE.md`.
 
    If the mode's check fails, stop and give the NEXT box.

@@ -34,6 +34,7 @@ Read `STATE.md` → Phases and the phase board. The first matching row wins. N i
 | 1 | SPEC/PLAN not written, or phases not all written | T1: talk to Planck (`go`) |
 | 2 | Some phase contracts are `draft` | T1: review `docs/phases/`, then type `approve` to Planck |
 | 3 | A finding has failed its 2nd fix attempt, or a dispute needs a contract ruling | T1: `/pykit:planck replan N` |
+| 3b | On the default branch, and approved plan files are uncommitted, or the repo has no commits | T1: `/pykit:ship plan` |
 | 4 | Previous phase not Merged (for N>1) | T1: `/pykit:ship N-1` (or `/pykit:ship N-1 merge` if its PR is open) |
 | 5 | Code and Tests both `—` | T2: `/pykit:build N` **and** T3: `/pykit:test N` (run both now) |
 | 6 | Only one of Code or Tests is ✅, and the other is ⏳ or `—` | Wait for the other terminal. If it hasn't been started: T3: `/pykit:test N` or T2: `/pykit:build N` |
@@ -44,13 +45,14 @@ Read `STATE.md` → Phases and the phase board. The first matching row wins. N i
 | 11 | Merged ✅ and a later phase exists | Move to phase N+1 and apply rows 2–10 |
 | 12 | All phases Merged and the release check passed | Done. Optionally: T1: `/pykit:ship release` to tag it |
 
-NEXT box format, written into `STATE.md` → Next and printed as the last lines of every reply:
+NEXT box format, written into `STATE.md` → Next and printed as the last lines of every reply. Each line names the terminal, the exact command, and in parentheses **the agents that command runs**. Never label a line with the terminal's session agent (for example "T1 (Planck)" for `/pykit:review`), because the user would think they should talk to that agent.
 ```
 NEXT
-→ T2 (Cody):   /pykit:build 2
-→ T3 (Tessma): /pykit:test 2        ← run both now
+→ T2: /pykit:build 2     (Cody builds)
+→ T3: /pykit:test 2      (Tessma writes tests)   ← run both now
 Why: phase 1 merged; phase 2 approved.
 ```
+Close-out example: `→ T1: /pykit:review 1   (Revy reviews → Summa report → Planck sync → Shipy commit)`
 
 ### Rules
 - Source of truth: the user's current instruction, then SPEC.md, accepted ADRs, the phase contract, PLAN.md, repo conventions.

@@ -86,7 +86,10 @@ Templates live in `.claude/pykit/templates/` in this project. `setup.sh` install
 **Approve**: the user says `approve`, `approve all`, or `approve N`.
 - Set the named contracts, or every `draft` contract, to `Status: approved`. Only the user can approve.
 - If any parked Open question blocks a phase, keep that phase at `draft` and say why.
-- End with the NEXT box. Usually that's T2 `/pykit:build 1` and T3 `/pykit:test 1`.
+- **Commit the plan.** Cody and Tessma cut phase branches from a clean `main`, so the approved plan must be on `main` first.
+  - If the Agent tool is available, delegate to the `shipy` agent in `plan` mode. It commits the planning docs on the default branch, and makes the first commit if the repo has none.
+  - Otherwise, route the NEXT box to T1 `/pykit:ship plan`.
+- End with the NEXT box. After the plan is committed, that's usually T2 `/pykit:build 1` and T3 `/pykit:test 1`.
 
 **Sync** (run by `/pykit:review N` after phase N closes, as a subagent): keep the later contracts true to what was actually built.
 - Read the phase N report, Revy's deviation list, `STATE.md` → Change log, and the actual interfaces in the code.
