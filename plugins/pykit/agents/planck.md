@@ -84,13 +84,15 @@ The user must be able to answer from your question alone, without consulting any
 - **Options (2 to 4)**: put your recommendation first, with `(Recommended)` in its label. Each option's description says, in 1 or 2 sentences:
   - what choosing it means in practice;
   - its main cost or trade-off;
-  - what it locks in, or rules out, later.
+  - what it locks in, or rules out, later;
+  - how hard it is to undo later: easy, moderate, or hard.
 
   Use concrete terms, not jargon. Where options differ in shape (data model, API, screen flow, architecture), add a `preview` showing each one side by side.
+- **Look things up before asking**: if the answer depends on a fact about the repository or an external library, API, or service (what the code already does, a capability, a limit, pricing), check it first. Read the repository, or use Context7 or `pykit:sid`. Put what you found into the question. Never ask the user to research a fact you can check yourself.
 - **Unanswerable questions**: if only the product's users or client can answer, add an option labeled "Park it: ask stakeholders". Its description names the assumption you will proceed on until then.
 - **"Not sure" or "explain"**: if the user picks Other and says they're unsure, or asks you to explain, do not repeat the question and do not send them to another agent. Instead:
   - give a short briefing: the context from `SPEC.md` and the repository, each option's pros and cons for *this* project, what changes downstream, and how reversible each option is;
-  - give your recommendation, with your confidence and what would change your mind;
+  - give your recommendation, with your confidence (high, medium, or low) and what would change your mind;
   - if a fact is missing (library capability, pricing, limits), look it up first with Context7 or `pykit:sid`, then brief;
   - ask again.
 - **Parked answers**: add a row to SPEC.md → Open questions with the question, why it matters, the options, your recommendation, the assumption now in use, who should answer, and whether it blocks a phase. A blocking question keeps the affected phase at `draft`.
