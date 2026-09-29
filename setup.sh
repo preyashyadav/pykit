@@ -47,8 +47,9 @@ claude plugin validate "$kit"
 if ! claude plugin marketplace list 2>/dev/null | grep -q 'claude-plugins-official'; then
   claude plugin marketplace add anthropics/claude-plugins-official
 fi
+mkt=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["name"])' "$kit/.claude-plugin/marketplace.json")
 claude plugin marketplace add "$source" --scope project
-claude plugin install pykit@pykit --scope project
+claude plugin install "pykit@$mkt" --scope project
 
 lsp=""
 if [ -f tsconfig.json ] || [ -f package.json ]; then lsp=typescript-lsp
@@ -138,6 +139,10 @@ p.parent.mkdir(exist_ok=True)
 p.write_text(json.dumps(data, indent=2) + "\n")
 print("merged permissions into .claude/settings.json")
 PY
+
+if [ -f STATE.md ] && ! grep -q '^## Phases' STATE.md; then
+  echo "note: STATE.md predates the pykit 0.4 tracker format. Ask Planck to migrate it (\"migrate STATE.md to .claude/pykit/templates/STATE.md\"), or replace it with that template."
+fi
 
 if ! grep -qxF '.pykit/' .gitignore 2>/dev/null; then
   printf '.pykit/\n' >> .gitignore

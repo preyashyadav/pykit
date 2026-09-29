@@ -1,11 +1,12 @@
 ---
 name: test
-description: Independently verify a phase with Tessma - run the quality gates, audit tests against acceptance criteria, probe edge and failure cases, and exercise the real app (browser for UI phases). Returns PASS or FAIL.
+description: Tessma writes phase N's acceptance, E2E, and edge-case tests from the contract alone (run in parallel with /pykit:build), then prints the exact next step.
 argument-hint: "[phase number]"
+disable-model-invocation: true
 context: fork
 agent: tessma
 background: false
 ---
-Verify phase $ARGUMENTS. If no phase was given, use the current phase from `STATE.md`.
+Mode: `test`. Phase: $ARGUMENTS. If no phase was given, use the phase in `STATE.md` → Next.
 
-Follow your procedure in full. The contract is `docs/phases/phase-NN.md` (NN zero-padded). Return your verdict in the output format your instructions define.
+Follow your `test` mode in full. Your reply must end with the NEXT box.

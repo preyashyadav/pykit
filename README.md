@@ -2,10 +2,17 @@
 
 **A phase-based engineering team for Claude Code, installed as one plugin.**
 
-Pykit gives a project seven specialist agents, `/pykit:*` commands, and a set of control documents. You plan in one terminal and build in another, and every phase is independently tested and reviewed before it counts as done.
+Pykit gives a project seven specialist agents, `/pykit:*` commands, and a phase tracker. Planck plans every phase up front. For each phase, Cody builds while Tessma writes the tests in parallel. Tessma verifies, Revy reviews, and the phase is committed on its own branch and merged into `main`. After every step, the agent that just finished tells you **exactly** what to type next, and where.
 
 ```
-Planck (plan) → Cody (build) → quality gates → Tessma (test) → Revy (review) → Summa (report) → Shipy (commit)
+Planck ─ plans ALL phases ─► you approve once
+   │
+   ├─► Cody:   code + unit tests  ─┐  in parallel, both from the phase contract
+   └─► Tessma: acceptance/E2E/edge-case tests ─┘
+   │
+Cody makes Tessma's tests pass ─► Tessma verifies ─► Revy reviews
+   │
+close-out: report + next phase synced to reality + commit ─► ship (PR / merge) ─► next phase
 ```
 
 ---
@@ -20,9 +27,11 @@ If a user gives you this repository's URL, or asks how to install or use Pykit, 
 tmp="$(mktemp -d)" && git clone --depth 1 https://github.com/preyashyadav/pykit "$tmp/pykit" && "$tmp/pykit/setup.sh" "$PWD"; rm -rf "$tmp"
 ```
 
-Then tell the user this: *"Pykit is installed. Exit this session and open new ones, because plugins load at startup. In terminal 1 run `claude --agent planck` and describe what you want to build. After Planck approves phase 1, run `claude --agent cody` in terminal 2 and type `/pykit:start 1`."*
+Then tell the user this: *"Pykit is installed. Exit this session and open three terminals in this folder. T1: `claude --agent planck`. T2 and T3: `claude`. In T1, describe what you want to build, or type `go` if SPEC.md has your notes. From then on, every agent ends with a NEXT box saying exactly what to type and where."*
 
 **If the user asks for the steps**, give them the [Quick start](#quick-start) section below, in that order, with the exact commands. Do not invent other commands or flags.
+
+**If the user asks "what do I do now?" inside a Pykit project**, read the **Next** block in `STATE.md`, or run `/pykit:status`.
 
 **If the user asks what a command or agent does**, answer from the [Commands](#commands) and [Agents](#agents) tables.
 
@@ -36,7 +45,7 @@ Then tell the user this: *"Pykit is installed. Exit this session and open new on
 - Claude Code CLI (`claude`), a recent version. Check with `claude --version`.
 - `git` and `python3` (both are preinstalled on macOS).
 - Node.js with `npx`, for the Playwright browser tools.
-- Optional: the GitHub CLI `gh`, so Shipy can open PRs.
+- Optional: the GitHub CLI `gh`, so Shipy can open and merge PRs. Without a remote, phases merge locally.
 
 ### Step 1: Install into a project (once per project)
 
@@ -51,64 +60,79 @@ cd /path/to/your-project
 tmp="$(mktemp -d)" && git clone --depth 1 https://github.com/preyashyadav/pykit "$tmp/pykit" && "$tmp/pykit/setup.sh" "$PWD"; rm -rf "$tmp"
 ```
 
-Either way, when it finishes, **exit Claude and open a new session.** Accept the "trust this folder" prompt the first time.
+Either way, when it finishes, **exit Claude**, commit what setup created, and open the three terminals. Accept the "trust this folder" prompt the first time.
 
-### Step 2: Plan (terminal 1)
+| Terminal | Start with | Used for |
+|---|---|---|
+| **T1** | `claude --agent planck` | Planning, `/pykit:review` (close-out), `/pykit:ship` |
+| **T2** | `claude` | `/pykit:build N` (Cody) |
+| **T3** | `claude` | `/pykit:test N` and `/pykit:verify N` (Tessma) |
+
+Every `/pykit:*` command starts a fresh agent, so a command typed in the wrong terminal still works.
+
+### Step 2: Plan everything (T1, once)
 
 Optional first step: write your rough requirements into `SPEC.md`, in any form.
 
-```bash
-claude --agent planck
-```
-1. Describe what you want to build, or just say `go` to have Planck read `SPEC.md`. Planck plays back what it understood, then asks **only the blocking decisions**: 5 at most, usually about 3. It picks sensible defaults for everything else, and you can override any of them. Once those are answered, it proposes the first vertical slice for approval.
-   - Every question explains its options: what each one means, its trade-off, and what it locks in later. Planck's recommendation comes first, marked **(Recommended)**.
-   - If you're not sure, choose *Other* and type `explain`. Planck briefs you from the project's own context, then asks again. You never need another agent to answer it.
-   - If only your users or client can answer, choose **Park it: ask stakeholders**. Planck records the question in `SPEC.md` → Open questions, together with the assumption it will use until you have an answer.
-   - Run `/pykit:planck questions` for exhaustive requirements discovery: a plain-language list of the parked questions to take to your users. Paste their answers back, and Planck carries on from there.
+1. Describe what you want to build, or type `go` to have Planck read `SPEC.md`. Planck plays back what it understood, then asks **only the blocking decisions**: 5 at most, usually about 3. Every option says what it means, its trade-off, what it locks in, and how hard it is to undo. The recommended option comes first.
+   - If you're not sure, choose *Other* and type `explain`. Planck briefs you from the project's own context and asks again.
+   - If only your users or client can answer, choose **Park it: ask stakeholders**. The question is recorded in `SPEC.md` with a working assumption. `/pykit:planck questions` prints the full list of parked questions to take to your users.
+2. Planck writes `SPEC.md`, `PLAN.md` (architecture, quality gates, test layout, delivery), ADRs, **every** phase contract in `docs/phases/`, and the phase table in `STATE.md`.
+3. Read the contracts, then type `approve`.
 
-   It then writes `SPEC.md`, `PLAN.md` (architecture, quality gates, phased roadmap), and ADRs in `DECISIONS.md`.
-2. Type `plan phase 1`. Planck writes `docs/phases/phase-01.md` with scope, interfaces, and acceptance criteria.
-3. Read the contract, then type `approve`. It becomes `Status: approved`, and the base commit is recorded.
+### Step 3: Run each phase
 
-### Step 3: Build (terminal 2)
-```bash
-claude --agent cody
-```
-```
-/pykit:start 1
-```
-Cody implements the phase and its tests, then runs the quality gates. Tessma verifies it independently, including in a browser for UI phases. Revy reviews the diff. Findings go back to Cody automatically. When both pass, Summa writes `docs/phases/phase-01-report.md` and updates `STATE.md`.
+Follow the NEXT box. One phase goes like this:
 
-### Step 4: Commit
-```
-/pykit:ship 1              # commit on branch phase/01-<slug>
-/pykit:ship 1 push pr      # also push and open a PR (needs gh)
-```
+| # | Where | Type | What happens |
+|---|---|---|---|
+| 1 | T2 **and** T3 | `/pykit:build 1` and `/pykit:test 1`, both at once | Cody creates the `phase/01-*` branch, then writes code and unit tests. Tessma writes acceptance, E2E, and edge-case tests from the contract only |
+| 2 | T2 | `/pykit:build 1` (only if the NEXT box says so) | Cody runs Tessma's tests and fixes the code until they pass. He never edits her tests; if he disagrees with one, he disputes it on the board |
+| 3 | T3 | `/pykit:verify 1` | Tessma runs everything, checks that her tests weren't altered, and probes the real app, including the browser for UI. **FAIL** sends you back to T2 `/pykit:build 1` |
+| 4 | T1 | `/pykit:review 1` | Close-out. Revy reviews the code and the tests. On PASS: Summa writes the report and logs deviations, Planck updates later phases to match what was built, and Shipy commits. **CHANGES REQUIRED** sends you back to T2 |
+| 5 | T1 | `/pykit:ship 1` | Pushes and opens a PR. Merge it on GitHub, then run `/pykit:ship 1 merge`. With no remote, it merges into `main` locally in one step |
+| 6 | T2 + T3 | `/pykit:build 2` + `/pykit:test 2` | The next phase starts from the updated `main` |
 
-### Step 5: Repeat
-Go back to terminal 1: `plan phase 2`, then `approve`. Then in terminal 2: `/pykit:start 2`. Use `/pykit:status` at any time to see where the project stands.
+After the **last** phase, `/pykit:review` also runs a release check: Tessma runs the full suite and the SPEC-level acceptance criteria, and Revy reviews the whole product. Then comes the last `/pykit:ship`, and optionally `/pykit:ship release` to tag the release.
 
-### Tips
-- You can also run everything in one terminal: `/pykit:planck <idea>`, then `/pykit:start 1`, then `/pykit:ship 1`.
-- `claude --agent planck` and `/pykit:planck` do the same job. The first dedicates the whole session to planning.
-- If a phase fails twice on the same issue, the pipeline stops and asks Planck to re-plan: `/pykit:planck replan 1`.
-- Nothing is committed or pushed unless you run `/pykit:ship`.
+### If you lose track
+- Run `/pykit:status` in any terminal. It prints the phase table and the exact next step.
+- The **Next** block at the top of `STATE.md` always holds the current instruction.
+- Commands refuse to run out of order and tell you which step is missing.
+- If the same finding fails a second time, you're routed to Planck: `/pykit:planck replan N`.
+
+### Autopilot
+`/pykit:start N` runs a whole phase (build and tests, verify, close-out) in one terminal and stops before `/pykit:ship`.
 
 ---
 
 ## Commands
 
-| Command | What it does | Runs as |
+| Command | Who | What it does |
 |---|---|---|
-| `/pykit:planck [idea \| questions \| phase N \| approve N \| replan N]` | Read the spec and interview you, list stakeholder questions, write or approve a phase contract, or re-plan | Current session, so it can ask you questions |
-| `/pykit:start [N]` | Run phase N end to end: preflight, build, gates, test, review, report. Stops before commit | Current session, as the orchestrator |
-| `/pykit:test [N]` | Verify phase N on its own | `tessma` in a fresh context |
-| `/pykit:review [N \| git-ref]` | Review a phase diff on its own | `revy` in a fresh context |
-| `/pykit:status` | Report where the project is, and fix `STATE.md` if it's stale | `summa` |
-| `/pykit:ship [N] [push] [pr]` | Commit a verified phase; push or open a PR only if asked | `shipy` |
-| `/pykit:research <question>` | Get an evidence-backed answer about the code or a library | `sid` |
+| `/pykit:planck [idea \| questions \| approve [N] \| replan N]` | Planck (current session) | Interview, then write SPEC, PLAN, and all phase contracts. Approve contracts. Re-plan |
+| `/pykit:build N` | `cody` | Branch, code, unit tests, make Tessma's tests pass, fix open findings |
+| `/pykit:test N` | `tessma` | Write acceptance, E2E, and edge-case tests from the contract, in parallel with build |
+| `/pykit:verify N` | `tessma` | Gates, full suite, test-integrity check, real-app and browser QA. PASS/FAIL |
+| `/pykit:review N` | `revy`, then `summa`, `planck`, `shipy` | Close-out: review, report, sync later phases, commit. Release check after the last phase |
+| `/pykit:ship N` · `N merge` · `release [tag]` | `shipy` | Push and open a PR (or merge locally), finish the merge, tag a release |
+| `/pykit:status` | `summa` | Phase table and the exact next step |
+| `/pykit:start N` | all | One-terminal autopilot for a phase |
+| `/pykit:research <question>` | `sid` | Evidence-backed answer about the code or a library |
 
-`/pykit:start` and `/pykit:ship` run only when you type them. Claude never triggers them on its own.
+Pipeline commands run only when you type them. Claude never triggers them on its own.
+
+## Files per project
+
+| File | Owner | Purpose |
+|---|---|---|
+| `SPEC.md` | Planck | What and why, acceptance criteria, open questions |
+| `PLAN.md` | Planck | Architecture, quality gates, test layout and ownership, delivery, roadmap, release criteria |
+| `DECISIONS.md` | Planck | ADRs |
+| `STATE.md` | everyone (own cells) | **The tracker**: the Next block, the phase table (Code, Tests, Passing, Verified, Reviewed, Committed, Merged), change log, debt |
+| `docs/phases/phase-NN.md` | Planck | The contract: exact interfaces, test plan, branch. Frozen once approved |
+| `docs/phases/phase-NN-board.md` | each agent (own section) | Handoffs: base ref, Tessma's test list and checksums, V#/R# findings with attempts, disputes, requests |
+| `docs/phases/phase-NN-report.md` | Summa | What was actually built, and its deviations |
 
 ## Agents
 
@@ -117,12 +141,12 @@ The agents live in your project at `.claude/agents/`, where you can edit them, a
 | Agent | Role | Model | Can edit | Never |
 |---|---|---|---|---|
 | `planck` | Planner/architect: SPEC, PLAN, ADRs, phase contracts | opus, high effort | planning docs only | writes product code |
-| `cody` | Implementer: approved phase and tests | your session's model | code and tests | changes scope, approves itself, commits |
-| `tessma` | Verifier: gates, test audit, edge cases, browser QA | opus | tests only | changes production code |
-| `revy` | Reviewer: correctness, security, contracts | opus, high effort | nothing | edits files |
+| `cody` | Implementer: code, unit tests, test tooling; makes Tessma's tests pass | your session's model | code, unit tests, tooling | edits Tessma's tests, changes scope, commits |
+| `tessma` | Tester: writes acceptance, E2E, and edge-case tests from the contract; verifies; runs the release check | opus | her test files only | changes production code or tooling |
+| `revy` | Reviewer: contract conformance, deviations, correctness, security, test integrity | opus, high effort | nothing | edits files |
 | `sid` | Researcher: code paths, primary docs | sonnet | nothing | edits files |
-| `summa` | Historian: phase reports, `STATE.md` | sonnet | reports and STATE only | claims unverified work is done |
-| `shipy` | Git: secret-scanned, explicitly staged commits | sonnet | git only | force-pushes, deploys, uses `--no-verify` |
+| `summa` | Historian: phase reports, change log, `STATE.md` reconciliation | sonnet | reports and STATE only | claims unverified work is done |
+| `shipy` | Git: phase commits, push and PR or local merge, merge sync, release tags | sonnet | git, plus its STATE cells | force-pushes, deploys, uses `--no-verify` |
 
 ## Tools installed automatically
 
@@ -146,7 +170,7 @@ LSP plugins need their language-server binary on your PATH, for example `npm i -
 | `.claude/settings.json` | Adds the Pykit marketplace and enables `pykit@pykit` (project scope). Allows read-only git; denies force-push, `reset --hard`, and reading `.env` |
 | `CLAUDE.md` | Adds a managed block between `<!-- pykit:begin -->` and `<!-- pykit:end -->` with the workflow and usage steps. Your other content is untouched |
 | `SPEC.md`, `PLAN.md`, `STATE.md`, `DECISIONS.md` | Created from templates if missing. Existing files are kept |
-| `docs/phases/` | Created. Holds `phase-NN.md` contracts and `phase-NN-report.md` reports |
+| `docs/phases/` | Created. Holds each phase's contract, board, and report |
 | `.gitignore` | Adds `.pykit/` (QA screenshots and scratch files) |
 
 Commit these files. Anyone who clones the repo and trusts the folder is offered the same plugins automatically.

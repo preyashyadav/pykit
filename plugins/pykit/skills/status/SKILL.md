@@ -1,6 +1,6 @@
 ---
 name: status
-description: Where are we? Summa reconciles STATE.md with the repository and reports the current phase, progress, blockers, debt, and the next command.
+description: Where are we? Summa reconciles STATE.md with the repository and prints the phase tracker plus the exact next step.
 context: fork
 agent: summa
 background: false

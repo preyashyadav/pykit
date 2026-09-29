@@ -1,32 +1,21 @@
 ---
 name: start
-description: Run one approved phase end to end - preflight, implement (Cody), quality gates, verify (Tessma), review (Revy), report (Summa). Stops before committing and never starts the next phase.
+description: Autopilot for one terminal - runs phase N's build and tests in parallel, integration, verification, and close-out, then stops before shipping.
 argument-hint: "[phase number]"
 disable-model-invocation: true
 ---
-Phase: $ARGUMENTS
+Phase: $ARGUMENTS. If no phase was given, use the phase in `STATE.md` → Next.
 
-If no phase was given, use the current phase from `STATE.md`. If it can't be inferred, ask one question. NN below means the zero-padded phase number.
+You are the orchestrator. Subagents don't see this conversation, so give each one the phase number, the contract path, the board path, and prior findings verbatim.
 
-You are the orchestrator. The specialists do the work. Subagents don't see this conversation, so give each one the phase number, the contract path `docs/phases/phase-NN.md`, the base ref, and any previous findings verbatim.
+1. **Preconditions.**
+   - The contract is `approved`.
+   - For N > 1, the previous phase is Merged.
 
-1. **Preconditions.** Read the contract.
-   - If it is missing, or its `Status` is not `approved`, stop and tell the user to run `/pykit:planck phase NN`.
-   - Note its `Base ref:`.
-   - Run `git status --porcelain`. If there are uncommitted changes unrelated to this phase, ask the user how to proceed before touching anything.
-2. **Preflight.** Delegate to `planck` to reconcile the contract with repository reality. If it returns with the contract changed back to `draft`, or with blocking questions, show them to the user and stop.
-3. **Implement.** If your own instructions say you are Cody, implement the phase yourself in this session. Otherwise, delegate to `cody`.
-4. **Gates.** Run every command in PLAN.md → Quality gates yourself. If any fails, send the output to Cody to fix, then run the gates again.
-5. **Verify.** Delegate to `tessma`. On FAIL, send the findings to Cody verbatim, then run the gates, then Tessma again.
-6. **Review.** Delegate to `revy`. On CHANGES REQUIRED, Cody fixes the BLOCKER and HIGH findings, then run the gates, then Tessma again if behavior changed, then Revy.
-7. **Loop limit.** If the same substantive failure comes back a second time, stop. Delegate to `planck` with the evidence and ask it to re-plan, then report to the user. Never make a third attempt at the same fix.
-8. **Record.** Delegate to `summa` with both PASS verdicts verbatim. It writes `docs/phases/phase-NN-report.md` and updates `STATE.md`.
-9. **Stop.** Do not commit (suggest `/pykit:ship`), and do not start the next phase.
-
-In your final message, give:
-- the Tessma and Revy verdicts;
-- the last lines of gate output;
-- a table mapping each criterion to its test;
-- deviations;
-- follow-ups;
-- the next command.
+   If either fails, print the NEXT box from `CLAUDE.md` and stop.
+2. **Build and tests in parallel.** Delegate to `cody` (build) and `tessma` (mode `test`) at the same time.
+3. **Integrate.** If Passing isn't `✅`, delegate to `cody` again to make Tessma's tests pass.
+4. **Verify.** Delegate to `tessma` (mode `verify`). On FAIL, send the work back to `cody`, then verify again.
+5. **Close-out.** Follow the steps of the `/pykit:review` close-out: `revy`, then `summa` in report mode, then `planck` sync, then `shipy` commit, then the release check if this is the last phase. On CHANGES REQUIRED, send the work back to `cody`, then `tessma` verify, then `revy`.
+6. **Loop limit.** If a finding reaches its 2nd failed attempt, stop and route to T1 `/pykit:planck replan N`.
+7. **Stop before shipping.** End with the NEXT box, which is usually T1 `/pykit:ship N`.

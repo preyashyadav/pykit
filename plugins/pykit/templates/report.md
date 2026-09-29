@@ -1,7 +1,7 @@
 # Phase NN Report
 
 Outcome: PASS | FAIL | PARTIAL
-Base ref: · Head:
+Branch: · Base ref: · Commit:
 Tessma: · Revy:
 
 ## What was built

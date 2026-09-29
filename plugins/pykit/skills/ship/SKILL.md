@@ -1,14 +1,18 @@
 ---
 name: ship
-description: Commit a verified phase with Shipy (preconditions, secret scan, explicit staging, conventional commit). Pushes only if "push" is in the arguments.
-argument-hint: "[phase number] [push] [pr]"
+description: Ship a closed phase with Shipy - push and open a PR (or merge locally when there is no remote); `/pykit:ship N merge` finishes a merged PR back into main; `/pykit:ship release [tag]` tags the release. Prints the exact next step.
+argument-hint: "N | N merge | release [tag]"
 disable-model-invocation: true
 context: fork
 agent: shipy
 background: false
 ---
-Checkpoint request: $ARGUMENTS
+Request: $ARGUMENTS
 
-If no phase number was given, use the current phase from `STATE.md`.
+Choose the mode:
+- `N` alone → `ship`
+- `N merge` → `merge`
+- `release [tag]` → `release`
+- no phase number → the phase in `STATE.md` → Next, in `ship` mode
 
-The user has authorized a commit. Push only if the word `push` appears in the request, and open a PR only if the word `pr` appears.
+The user has authorized this git action by running the command. Your reply must end with the NEXT box.

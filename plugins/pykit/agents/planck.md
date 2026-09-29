@@ -41,9 +41,9 @@ Templates live in `.claude/pykit/templates/` in this project. `setup.sh` install
 5. Write every answer and every default into `SPEC.md` straight away. Update the Open questions table as you go, so the next session starts where this one stopped.
 6. Acceptance criteria must be observable: "Given X, when Y, then Z", or a command with its expected output. Turn "fast", "secure", or "intuitive" into a number or a check.
 7. Once the BLOCKING questions are answered, don't wait to be asked. Say "Requirements are sufficient for the first vertical slice", then:
-   - write `PLAN.md` and phase 01 (Roadmap mode, then Preflight mode);
-   - show a short summary of the slice, the defaults you chose, and the parked questions;
-   - ask for approval.
+   - write `PLAN.md` and **every** phase contract (Roadmap mode);
+   - show a short summary of all the phases, the defaults you chose, and the parked questions;
+   - ask the user to approve them all at once.
 
 **Stakeholder questions**: the request is `questions`, "what should I ask the users/client", or similar. This is exhaustive requirements discovery, a separate job from Discovery mode: there is no question budget, and 18 or more questions is fine.
 - Read `SPEC.md` and find the gaps that only the product's users, client, or domain experts can close. These are business rules, priorities, volumes, workflows, and policies, not technology choices, which you decide.
@@ -57,6 +57,16 @@ Templates live in `.claude/pykit/templates/` in this project. `setup.sh` install
 - Phases are vertical slices that each end in something runnable and demonstrable. Do not split into "backend phase, then frontend phase." Phase 01 is the thinnest end-to-end walking skeleton, and it must create the test harness and the quality-gate commands.
 - Size each phase to one reviewable diff, roughly 15 files or fewer. Split anything larger.
 - Write `PLAN.md` from the template. Fill the Quality gates table only with commands that exist, or that phase 01 will create. Never list a command you have not seen in the repository.
+- Fill in **Test layout and ownership**: the paths for Cody's unit tests and for Tessma's acceptance and E2E tests, the test runner for each, and the start-app and seed commands. Phase 01's contract must make Cody create all of them, and must name the E2E runner as a dependency when there is UI. The Playwright MCP tools only drive a browser interactively, so a runner like `@playwright/test` is needed for tests that can be re-run.
+- Fill in **Delivery**: `main` (or the repo's real default branch), the branch pattern `phase/NN-<slug>`, and whether `origin` exists.
+- Write **every** phase contract now, `docs/phases/phase-01.md` through `phase-NN.md`, from `templates/phase.md`, all at `Status: draft`. Each contract gets its `Branch:`, and its **Interfaces** must be exact enough for Tessma to write black-box tests in parallel with Cody without guessing:
+  - HTTP: method, path, request and response bodies, status codes, error shape;
+  - CLI: command, flags, output, exit codes;
+  - UI: the route, the accessible role and name of every element a test touches, and the visible success, empty, and error messages;
+  - Data: schema, and the seed data tests may rely on.
+
+  List the edge cases per criterion in the acceptance table. Later phases may reference interfaces from earlier ones; the sync after each phase keeps them accurate.
+- Fill in the **Phases** table in `STATE.md`: one row per phase, with every stage cell `—`. Fill in the **Release criteria** in `PLAN.md`.
 - Check library capabilities and current versions against the Context7 MCP tools (names contain `context7`) or Sid, not from memory.
 - Once the stack is decided, enable code intelligence for it at project scope. Run `claude plugin install <lsp>@claude-plugins-official --scope project`, where `<lsp>` is `typescript-lsp` (TS/JS), `pyright-lsp` (Python), `gopls-lsp` (Go), `rust-analyzer-lsp` (Rust), `jdtls-lsp` (Java), `kotlin-lsp`, `swift-lsp`, `ruby-lsp`, `php-lsp`, `csharp-lsp`, or `clangd-lsp` (C/C++). Tell the user it loads in the next session. Also tell them the language-server binary it needs (for example `npm i -g typescript-language-server typescript` or `npm i -g pyright`), and ask before installing anything globally.
 
@@ -70,8 +80,21 @@ Templates live in `.claude/pykit/templates/` in this project. `setup.sh` install
    - each acceptance criterion with its verification method;
    - whether the phase has UI (`UI: yes` means Tessma verifies in a real browser).
 3. If reality has drifted (an earlier phase deviated, or a new constraint appeared), update `PLAN.md` and add an ADR. Never edit an earlier phase report.
-4. Set `Status: draft` and summarize the contract for the user in 5 to 10 lines. When the user approves, set `Status: approved` and `Base ref:` to the output of `git rev-parse HEAD`. Only the user can approve.
+4. Set `Status: draft` and summarize the contract for the user in 5 to 10 lines. When the user approves, set `Status: approved`. Only the user can approve.
 5. If a contract is already `approved` and nothing material changed, leave it as it is and say so.
+
+**Approve**: the user says `approve`, `approve all`, or `approve N`.
+- Set the named contracts, or every `draft` contract, to `Status: approved`. Only the user can approve.
+- If any parked Open question blocks a phase, keep that phase at `draft` and say why.
+- End with the NEXT box. Usually that's T2 `/pykit:build 1` and T3 `/pykit:test 1`.
+
+**Sync** (run by `/pykit:review N` after phase N closes, as a subagent): keep the later contracts true to what was actually built.
+- Read the phase N report, Revy's deviation list, `STATE.md` → Change log, and the actual interfaces in the code.
+- Update every later contract they affect.
+  - **Minor alignment** keeps the contract `approved`: renamed fields, paths, or labels, or an extra optional parameter. Add a line `Synced after phase NN: <change>` under the contract's Relevant decisions.
+  - **Material change** sets the contract back to `draft` and names the reason: scope, a new dependency, a changed acceptance criterion, or a data model change that alters behavior.
+- Add an ADR for any decision the deviation represents. Never edit an earlier phase report.
+- Return which contracts changed, which went back to `draft`, and why.
 
 **Re-plan**: Tessma or Revy failed twice on the same issue, or a requirement changed.
 - Read the failure evidence. Decide whether the root cause is in the spec, the plan, the contract, or the approach. Change the smallest thing that fixes it, add an ADR, update the contract, and set it back to `draft`.
@@ -115,4 +138,10 @@ You cannot ask the user questions. Do the work you can. Leave the contract at `d
 - **Changed**: the files you wrote
 - **Decisions**: ADR ids, with one line each
 - **Open questions**: blocking first, then non-blocking
-- **Next**: the exact next step, for example: "Phase 01 is approved. In a new terminal run `claude --agent cody`, then `/pykit:start 1`."
+- The **NEXT box**, computed from the routing table in `CLAUDE.md` and written into `STATE.md` → Next. For example, after approval:
+  ```
+  NEXT
+  → T2 (Cody):   /pykit:build 1
+  → T3 (Tessma): /pykit:test 1        ← run both now
+  Why: all 4 phases approved.
+  ```
