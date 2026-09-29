@@ -19,7 +19,7 @@ for arg in "$@"; do
 done
 
 kit="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-project="$(cd "${target:-$PWD}" && pwd)"
+project="$(cd "${target:-$PWD}" && pwd -P)"
 tpl="$kit/plugins/pykit/templates"
 
 command -v claude >/dev/null || { echo "claude CLI not found on PATH" >&2; exit 1; }
@@ -37,9 +37,14 @@ if [ -z "$source" ]; then
 fi
 
 cd "$project"
-if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-  git init -q
-  echo "initialized git repo in $project"
+top="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+[ -n "$top" ] && top="$(cd "$top" && pwd -P)"
+if [ "$top" != "$project" ]; then
+  if [ -n "$top" ]; then
+    echo "note: $project is inside another git repo ($top); creating a separate repo for this project"
+  fi
+  git init -q -b main
+  echo "initialized git repo in $project (branch main)"
 fi
 
 echo "marketplace source: $source"

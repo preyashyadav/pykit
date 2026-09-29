@@ -21,10 +21,10 @@ close-out: report + next phase synced to reality + commit ─► ship (PR / merg
 
 If a user gives you this repository's URL, or asks how to install or use Pykit, follow this section exactly.
 
-**To install Pykit in the user's current project**, run this one command from the project root, replacing nothing:
+**To install Pykit in the user's current project**, run this one command from the project root, replacing nothing. It keeps a clone of the kit in `~/.cache/pykit` (cloned the first time, fast-forwarded after that) and deletes nothing, so auto-mode permission checks accept it. If the folder isn't the top of its own git repo (for example, it sits inside a larger repo), `setup.sh` creates a separate repo there on branch `main`:
 
 ```bash
-tmp="$(mktemp -d)" && git clone --depth 1 https://github.com/preyashyadav/pykit "$tmp/pykit" && "$tmp/pykit/setup.sh" "$PWD"; rm -rf "$tmp"
+git clone -q --depth 1 https://github.com/preyashyadav/pykit ~/.cache/pykit 2>/dev/null || git -C ~/.cache/pykit pull -q --ff-only; ~/.cache/pykit/setup.sh "$PWD"
 ```
 
 Then tell the user this: *"Pykit is installed. Exit this session and open three terminals in this folder. T1: `claude --agent planck`. T2 and T3: `claude`. In T1, describe what you want to build, or type `go` if SPEC.md has your notes. From then on, every agent ends with a NEXT box saying exactly what to type and where."*
@@ -57,7 +57,7 @@ Choose A or B.
 **B. Run the script yourself:**
 ```bash
 cd /path/to/your-project
-tmp="$(mktemp -d)" && git clone --depth 1 https://github.com/preyashyadav/pykit "$tmp/pykit" && "$tmp/pykit/setup.sh" "$PWD"; rm -rf "$tmp"
+git clone -q --depth 1 https://github.com/preyashyadav/pykit ~/.cache/pykit 2>/dev/null || git -C ~/.cache/pykit pull -q --ff-only; ~/.cache/pykit/setup.sh "$PWD"
 ```
 
 Either way, when it finishes, **exit Claude**, commit what setup created, and open the three terminals. Accept the "trust this folder" prompt the first time.
@@ -189,7 +189,7 @@ Commit these files. Anyone who clones the repo and trusts the folder is offered 
 - **Add your own agents** alongside them, for example `.claude/agents/dba.md`. Mention them in `CLAUDE.md`, or ask Cody or Planck to delegate to them.
 - **Your edits are never overwritten.** Re-running `setup.sh` only adds missing files, and lists any copy that differs from the kit. To take the kit's newer versions:
   ```bash
-  tmp="$(mktemp -d)" && git clone --depth 1 https://github.com/preyashyadav/pykit "$tmp/pykit" && "$tmp/pykit/setup.sh" --update-agents "$PWD"; rm -rf "$tmp"
+  git clone -q --depth 1 https://github.com/preyashyadav/pykit ~/.cache/pykit 2>/dev/null || git -C ~/.cache/pykit pull -q --ff-only; ~/.cache/pykit/setup.sh --update-agents "$PWD"
   ```
   Files you edited are saved as `<name>.md.bak-<timestamp>` first, so you can merge your changes back. `.claude/pykit/manifest.json` records the checksum of each copied file, and that's how setup tells your edits apart from kit updates.
 - `claude plugin update pykit@pykit` updates the commands and the automatically installed tools. It does not touch your agent copies.
