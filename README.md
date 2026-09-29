@@ -20,11 +20,13 @@ If a user gives you this repository's URL, or asks how to install or use Pykit, 
 tmp="$(mktemp -d)" && git clone --depth 1 https://github.com/preyashyadav/pykit "$tmp/pykit" && "$tmp/pykit/setup.sh" "$PWD"; rm -rf "$tmp"
 ```
 
-Then tell the user this: *"Pykit is installed. Exit this session and open new ones, because plugins load at startup. In terminal 1 run `claude --agent pykit:planck` and describe what you want to build. After Planck approves phase 1, run `claude --agent pykit:cody` in terminal 2 and type `/pykit:start 1`."*
+Then tell the user this: *"Pykit is installed. Exit this session and open new ones, because plugins load at startup. In terminal 1 run `claude --agent planck` and describe what you want to build. After Planck approves phase 1, run `claude --agent cody` in terminal 2 and type `/pykit:start 1`."*
 
 **If the user asks for the steps**, give them the [Quick start](#quick-start) section below, in that order, with the exact commands. Do not invent other commands or flags.
 
 **If the user asks what a command or agent does**, answer from the [Commands](#commands) and [Agents](#agents) tables.
+
+**If the user asks how to change an agent**, tell them to edit `.claude/agents/<name>.md` in their project and start a new session. See [Customize the agents](#customize-the-agents). Never edit files under `~/.claude/plugins/cache/`.
 
 ---
 
@@ -56,7 +58,7 @@ Either way, when it finishes, **exit Claude and open a new session.** Accept the
 Optional first step: write your rough requirements into `SPEC.md`, in any form.
 
 ```bash
-claude --agent pykit:planck
+claude --agent planck
 ```
 1. Describe what you want to build, or just say `go` to have Planck read `SPEC.md`. Planck plays back what it understood, then asks **only the blocking decisions**: 5 at most, usually about 3. It picks sensible defaults for everything else, and you can override any of them. Once those are answered, it proposes the first vertical slice for approval.
    - Every question explains its options: what each one means, its trade-off, and what it locks in later. Planck's recommendation comes first, marked **(Recommended)**.
@@ -70,7 +72,7 @@ claude --agent pykit:planck
 
 ### Step 3: Build (terminal 2)
 ```bash
-claude --agent pykit:cody
+claude --agent cody
 ```
 ```
 /pykit:start 1
@@ -88,7 +90,7 @@ Go back to terminal 1: `plan phase 2`, then `approve`. Then in terminal 2: `/pyk
 
 ### Tips
 - You can also run everything in one terminal: `/pykit:planck <idea>`, then `/pykit:start 1`, then `/pykit:ship 1`.
-- `claude --agent pykit:planck` and `/pykit:planck` do the same job. The first dedicates the whole session to planning.
+- `claude --agent planck` and `/pykit:planck` do the same job. The first dedicates the whole session to planning.
 - If a phase fails twice on the same issue, the pipeline stops and asks Planck to re-plan: `/pykit:planck replan 1`.
 - Nothing is committed or pushed unless you run `/pykit:ship`.
 
@@ -100,27 +102,27 @@ Go back to terminal 1: `plan phase 2`, then `approve`. Then in terminal 2: `/pyk
 |---|---|---|
 | `/pykit:planck [idea \| questions \| phase N \| approve N \| replan N]` | Read the spec and interview you, list stakeholder questions, write or approve a phase contract, or re-plan | Current session, so it can ask you questions |
 | `/pykit:start [N]` | Run phase N end to end: preflight, build, gates, test, review, report. Stops before commit | Current session, as the orchestrator |
-| `/pykit:test [N]` | Verify phase N on its own | `pykit:tessma` in a fresh context |
-| `/pykit:review [N \| git-ref]` | Review a phase diff on its own | `pykit:revy` in a fresh context |
-| `/pykit:status` | Report where the project is, and fix `STATE.md` if it's stale | `pykit:summa` |
-| `/pykit:ship [N] [push] [pr]` | Commit a verified phase; push or open a PR only if asked | `pykit:shipy` |
-| `/pykit:research <question>` | Get an evidence-backed answer about the code or a library | `pykit:sid` |
+| `/pykit:test [N]` | Verify phase N on its own | `tessma` in a fresh context |
+| `/pykit:review [N \| git-ref]` | Review a phase diff on its own | `revy` in a fresh context |
+| `/pykit:status` | Report where the project is, and fix `STATE.md` if it's stale | `summa` |
+| `/pykit:ship [N] [push] [pr]` | Commit a verified phase; push or open a PR only if asked | `shipy` |
+| `/pykit:research <question>` | Get an evidence-backed answer about the code or a library | `sid` |
 
 `/pykit:start` and `/pykit:ship` run only when you type them. Claude never triggers them on its own.
 
 ## Agents
 
-Every agent appears in `/agents`. Start any one of them as a full session with `claude --agent pykit:<name>`.
+The agents live in your project at `.claude/agents/`, where you can edit them, and they appear in `/agents`. Start any one of them as a full session with `claude --agent <name>`.
 
 | Agent | Role | Model | Can edit | Never |
 |---|---|---|---|---|
-| `pykit:planck` | Planner/architect: SPEC, PLAN, ADRs, phase contracts | opus, high effort | planning docs only | writes product code |
-| `pykit:cody` | Implementer: approved phase and tests | your session's model | code and tests | changes scope, approves itself, commits |
-| `pykit:tessma` | Verifier: gates, test audit, edge cases, browser QA | opus | tests only | changes production code |
-| `pykit:revy` | Reviewer: correctness, security, contracts | opus, high effort | nothing | edits files |
-| `pykit:sid` | Researcher: code paths, primary docs | sonnet | nothing | edits files |
-| `pykit:summa` | Historian: phase reports, `STATE.md` | sonnet | reports and STATE only | claims unverified work is done |
-| `pykit:shipy` | Git: secret-scanned, explicitly staged commits | sonnet | git only | force-pushes, deploys, uses `--no-verify` |
+| `planck` | Planner/architect: SPEC, PLAN, ADRs, phase contracts | opus, high effort | planning docs only | writes product code |
+| `cody` | Implementer: approved phase and tests | your session's model | code and tests | changes scope, approves itself, commits |
+| `tessma` | Verifier: gates, test audit, edge cases, browser QA | opus | tests only | changes production code |
+| `revy` | Reviewer: correctness, security, contracts | opus, high effort | nothing | edits files |
+| `sid` | Researcher: code paths, primary docs | sonnet | nothing | edits files |
+| `summa` | Historian: phase reports, `STATE.md` | sonnet | reports and STATE only | claims unverified work is done |
+| `shipy` | Git: secret-scanned, explicitly staged commits | sonnet | git only | force-pushes, deploys, uses `--no-verify` |
 
 ## Tools installed automatically
 
@@ -139,6 +141,8 @@ LSP plugins need their language-server binary on your PATH, for example `npm i -
 
 | File | Change |
 |---|---|
+| `.claude/agents/*.md` | The seven agents, as editable project copies (see [Customize the agents](#customize-the-agents)) |
+| `.claude/pykit/` | Templates used by Planck and Summa, plus `manifest.json` (checksums for safe updates) |
 | `.claude/settings.json` | Adds the Pykit marketplace and enables `pykit@pykit` (project scope). Allows read-only git; denies force-push, `reset --hard`, and reading `.env` |
 | `CLAUDE.md` | Adds a managed block between `<!-- pykit:begin -->` and `<!-- pykit:end -->` with the workflow and usage steps. Your other content is untouched |
 | `SPEC.md`, `PLAN.md`, `STATE.md`, `DECISIONS.md` | Created from templates if missing. Existing files are kept |
@@ -146,6 +150,25 @@ LSP plugins need their language-server binary on your PATH, for example `npm i -
 | `.gitignore` | Adds `.pykit/` (QA screenshots and scratch files) |
 
 Commit these files. Anyone who clones the repo and trusts the folder is offered the same plugins automatically.
+
+## Customize the agents
+
+`setup.sh` copies every agent into the project at `.claude/agents/`. Commit them, and anyone on the team can edit them:
+
+```
+.claude/agents/planck.md  cody.md  tessma.md  revy.md  sid.md  summa.md  shipy.md
+.claude/pykit/templates/  phase.md  report.md  SPEC.md  PLAN.md  STATE.md  DECISIONS.md
+```
+
+- **Project copies win.** Claude Code resolves the short name (`tessma`) project first, then your user folder, then the plugin. `/pykit:*` commands and `claude --agent <name>` therefore always use your edited version. Edits apply from the next session.
+- **Edit anything.** You can change the prompt body, `model`, `effort`, `tools`, and `color`. Project agents can also set what plugin agents can't: `mcpServers`, `hooks`, and `permissionMode` (for example `permissionMode: plan` to keep Revy strictly read-only).
+- **Add your own agents** alongside them, for example `.claude/agents/dba.md`. Mention them in `CLAUDE.md`, or ask Cody or Planck to delegate to them.
+- **Your edits are never overwritten.** Re-running `setup.sh` only adds missing files, and lists any copy that differs from the kit. To take the kit's newer versions:
+  ```bash
+  tmp="$(mktemp -d)" && git clone --depth 1 https://github.com/preyashyadav/pykit "$tmp/pykit" && "$tmp/pykit/setup.sh" --update-agents "$PWD"; rm -rf "$tmp"
+  ```
+  Files you edited are saved as `<name>.md.bak-<timestamp>` first, so you can merge your changes back. `.claude/pykit/manifest.json` records the checksum of each copied file, and that's how setup tells your edits apart from kit updates.
+- `claude plugin update pykit@pykit` updates the commands and the automatically installed tools. It does not touch your agent copies.
 
 ## Update, disable, uninstall
 
@@ -162,7 +185,8 @@ claude plugin prune                                       # remove auto-installe
 |---|---|
 | `/pykit:*` or `pykit:*` agents are missing | Start a new session after setup. Run `claude plugin list` and check that `pykit@pykit` is enabled |
 | "workspace has not been trusted" | Run `claude` once in the folder and accept the trust prompt |
-| `claude --agent cody` opens a different Cody | A user-level `~/.claude/agents/cody.md` wins over the plugin. Use the full name `pykit:cody` |
+| An agent ignores your edits | Edit `.claude/agents/<name>.md` in the project, not the plugin cache, then start a new session. Check that the file's `name:` matches the file name |
+| `claude --agent cody` opens a different Cody | The project has no `.claude/agents/cody.md`, so a user-level `~/.claude/agents/cody.md` wins. Re-run `setup.sh` to restore the project copy |
 | Cody says "no approved contract" | In the planner session run `plan phase N`, then `approve` |
 | Tessma says "browser verification not performed" | Run `claude plugin install playwright@claude-plugins-official` and make sure Node/`npx` works |
 
@@ -184,7 +208,7 @@ claude plugin validate . && claude plugin validate plugins/pykit
 claude --plugin-dir plugins/pykit          # try changes without reinstalling
 ```
 
-Bump `version` in `plugins/pykit/.claude-plugin/plugin.json` for each release, because installed projects stay pinned to a version until it changes. Plugin agents can't set `hooks`, `mcpServers`, or `permissionMode`. If you need those, copy the agent into a project's `.claude/agents/`.
+Bump `version` in `plugins/pykit/.claude-plugin/plugin.json` for each release, because installed projects stay pinned to a version until it changes. Agent sources live in `plugins/pykit/agents/`. `setup.sh` copies them into each project, and the plugin keeps a copy as a fallback. Commands reference agents by short name so that project copies win.
 
 ## License
 

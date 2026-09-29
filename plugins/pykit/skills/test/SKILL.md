@@ -3,7 +3,7 @@ name: test
 description: Independently verify a phase with Tessma - run the quality gates, audit tests against acceptance criteria, probe edge and failure cases, and exercise the real app (browser for UI phases). Returns PASS or FAIL.
 argument-hint: "[phase number]"
 context: fork
-agent: pykit:tessma
+agent: tessma
 background: false
 ---
 Verify phase $ARGUMENTS. If no phase was given, use the current phase from `STATE.md`.

@@ -3,7 +3,7 @@ name: review
 description: Independent read-only code review of a phase diff by Revy - correctness, security, contracts, acceptance coverage. Returns PASS or CHANGES REQUIRED with evidence.
 argument-hint: "[phase number | git ref]"
 context: fork
-agent: pykit:revy
+agent: revy
 background: false
 ---
 Review: $ARGUMENTS

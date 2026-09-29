@@ -19,4 +19,4 @@ Status: not started
 - None.
 
 ## Next
-- Plan: `claude --agent pykit:planck`, or `/pykit:planck <idea>`.
+- Plan: `claude --agent planck`, or `/pykit:planck <idea>`.

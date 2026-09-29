@@ -4,7 +4,7 @@ description: Commit a verified phase with Shipy (preconditions, secret scan, exp
 argument-hint: "[phase number] [push] [pr]"
 disable-model-invocation: true
 context: fork
-agent: pykit:shipy
+agent: shipy
 background: false
 ---
 Checkpoint request: $ARGUMENTS

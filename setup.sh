@@ -1,12 +1,25 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-usage() { echo "usage: setup.sh [project-dir]   (env PYKIT_SOURCE=owner/repo|path overrides the marketplace source)" >&2; exit 1; }
-[ $# -le 1 ] || usage
-case "${1:-}" in -h|--help) usage ;; esac
+usage() {
+  echo "usage: setup.sh [--update-agents] [project-dir]" >&2
+  echo "  --update-agents  replace project agent/template copies with the kit's versions (edited files are backed up)" >&2
+  echo "  env PYKIT_SOURCE=owner/repo|path overrides the marketplace source" >&2
+  exit 1
+}
+update_agents=0
+target=""
+for arg in "$@"; do
+  case "$arg" in
+    -h|--help) usage ;;
+    --update-agents) update_agents=1 ;;
+    -*) usage ;;
+    *) [ -z "$target" ] || usage; target="$arg" ;;
+  esac
+done
 
 kit="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-project="$(cd "${1:-$PWD}" && pwd)"
+project="$(cd "${target:-$PWD}" && pwd)"
 tpl="$kit/plugins/pykit/templates"
 
 command -v claude >/dev/null || { echo "claude CLI not found on PATH" >&2; exit 1; }
@@ -60,6 +73,43 @@ for f in SPEC.md PLAN.md STATE.md DECISIONS.md; do
 done
 mkdir -p docs/phases
 
+python3 - "$kit/plugins/pykit" "$update_agents" <<'PY'
+import hashlib, json, pathlib, shutil, sys, time
+src_root, update = pathlib.Path(sys.argv[1]), sys.argv[2] == "1"
+manifest_path = pathlib.Path(".claude/pykit/manifest.json")
+manifest = json.loads(manifest_path.read_text()) if manifest_path.exists() else {}
+stamp = time.strftime("%Y%m%d%H%M%S")
+sha = lambda p: hashlib.sha256(p.read_bytes()).hexdigest()
+pairs = [(f, pathlib.Path(".claude/agents") / f.name) for f in sorted((src_root / "agents").glob("*.md"))]
+pairs += [(f, pathlib.Path(".claude/pykit/templates") / f.name) for f in sorted((src_root / "templates").glob("*.md")) if f.name != "claude-block.md"]
+pending = []
+for src, dst in pairs:
+    key = str(dst)
+    if not dst.exists():
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(src, dst); manifest[key] = sha(dst)
+        print(f"created {dst}")
+        continue
+    if sha(dst) == sha(src):
+        manifest[key] = sha(dst)
+        continue
+    edited = manifest.get(key) != sha(dst)
+    if not update:
+        pending.append(f"{dst} ({'edited locally' if edited else 'kit has a newer version'})")
+        continue
+    if edited:
+        backup = dst.with_name(f"{dst.name}.bak-{stamp}")
+        shutil.copyfile(dst, backup)
+        print(f"backed up edited {dst} -> {backup}")
+    shutil.copyfile(src, dst); manifest[key] = sha(dst)
+    print(f"updated {dst}")
+manifest_path.parent.mkdir(parents=True, exist_ok=True)
+manifest_path.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n")
+if pending:
+    print("kept project copies that differ from the kit (run with --update-agents to replace; edits get a .bak):")
+    for line in pending: print(f"  {line}")
+PY
+
 python3 - "$tpl/claude-block.md" <<'PY'
 import re, sys, pathlib
 block = pathlib.Path(sys.argv[1]).read_text().rstrip() + "\n"
@@ -99,10 +149,11 @@ command -v gh >/dev/null || echo "optional: install the GitHub CLI so Shipy can 
 cat <<EOF
 
 Pykit is set up in $project
-Installed: pykit (7 agents, /pykit:* commands) + playwright + context7${lsp:+ + $lsp}
+Installed: pykit (/pykit:* commands) + playwright + context7${lsp:+ + $lsp}
+Agents:    .claude/agents/{planck,cody,tessma,revy,sid,summa,shipy}.md  (edit freely; these override the plugin)
 
 Next: exit this session and start NEW ones (plugins load at startup; accept the trust prompt once):
-  Terminal 1:  claude --agent pykit:planck     then describe what you want to build
-  Terminal 2:  claude --agent pykit:cody       then /pykit:start 1   (after Planck approves phase 1)
-Commit .claude/settings.json, CLAUDE.md and the control docs so other clones get the same setup.
+  Terminal 1:  claude --agent planck     then describe what you want to build
+  Terminal 2:  claude --agent cody       then /pykit:start 1   (after Planck approves phase 1)
+Commit .claude/ (settings, agents, pykit templates), CLAUDE.md and the control docs so other clones get the same setup.
 EOF
