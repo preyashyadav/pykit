@@ -12,7 +12,7 @@ Planck ─ plans ALL phases ─► you approve once
    │
 Cody makes Tessma's tests pass ─► Tessma verifies ─► Revy reviews
    │
-close-out: report + next phase synced to reality + commit ─► ship (PR / merge) ─► next phase
+close-out: review + later phases synced to reality + commit ─► ship (PR / merge) ─► next phase
 ```
 
 ---
@@ -89,7 +89,7 @@ Follow the NEXT box. One phase goes like this:
 | 1 | T2 **and** T3 | `/pykit:build 1` and `/pykit:test 1`, both at once | Cody creates the `phase/01-*` branch, then writes code and unit tests. Tessma writes acceptance, E2E, and edge-case tests from the contract only |
 | 2 | T2 | `/pykit:build 1` (only if the NEXT box says so) | Cody runs Tessma's tests and fixes the code until they pass. He never edits her tests; if he disagrees with one, he disputes it on the board |
 | 3 | T3 | `/pykit:verify 1` | Tessma runs everything, checks that her tests weren't altered, and probes the real app, including the browser for UI. **FAIL** sends you back to T2 `/pykit:build 1` |
-| 4 | T1 | `/pykit:review 1` | Close-out. Revy reviews the code and the tests. On PASS: Summa writes the report and logs deviations, Planck updates later phases to match what was built, and Shipy commits. **CHANGES REQUIRED** sends you back to T2 |
+| 4 | T1 | `/pykit:review 1` | Close-out. Revy reviews the code and the tests. On PASS: deviations are logged, Planck updates later phases to match what was built (and lists any findings it carried forward), and Shipy commits. All steps run in the foreground, so wait for the NEXT box. If interrupted, re-run it and it resumes where it stopped. **CHANGES REQUIRED** sends you back to T2 |
 | 5 | T1 | `/pykit:ship 1` | Pushes and opens a PR. Merge it on GitHub, then run `/pykit:ship 1 merge`. With no remote, it merges into `main` locally in one step |
 | 6 | T2 + T3 | `/pykit:build 2` + `/pykit:test 2` | The next phase starts from the updated `main` |
 
@@ -114,7 +114,8 @@ After the **last** phase, `/pykit:review` also runs a release check: Tessma runs
 | `/pykit:build N` | `cody` | Branch, code, unit tests, make Tessma's tests pass, fix open findings |
 | `/pykit:test N` | `tessma` | Write acceptance, E2E, and edge-case tests from the contract, in parallel with build |
 | `/pykit:verify N` | `tessma` | Gates, full suite, test-integrity check, real-app and browser QA. PASS/FAIL |
-| `/pykit:review N` | `revy`, then `summa`, `planck`, `shipy` | Close-out: review, report, sync later phases, commit. Release check after the last phase |
+| `/pykit:review N` | `revy`, then `planck`, `shipy` | Close-out: review, record deviations, sync later phases, commit. Resumable. Release check after the last phase |
+| `/pykit:report N` | `summa` | Phase report, only when you ask |
 | `/pykit:ship plan` · `N` · `N merge` · `release [tag]` | `shipy` | Commit the approved plan on `main`; push and open a PR (or merge locally); finish the merge; tag a release |
 | `/pykit:status` | `summa` | Phase table and the exact next step |
 | `/pykit:start N` | all | One-terminal autopilot for a phase |
@@ -132,7 +133,7 @@ Pipeline commands run only when you type them. Claude never triggers them on its
 | `STATE.md` | everyone (own cells) | **The tracker**: the Next block, the phase table (Code, Tests, Passing, Verified, Reviewed, Committed, Merged), change log, debt |
 | `docs/phases/phase-NN.md` | Planck | The contract: exact interfaces, test plan, branch. Frozen once approved |
 | `docs/phases/phase-NN-board.md` | each agent (own section) | Handoffs: base ref, Tessma's test list and checksums, V#/R# findings with attempts, disputes, requests |
-| `docs/phases/phase-NN-report.md` | Summa | What was actually built, and its deviations |
+| `docs/phases/phase-NN-report.md` | Summa | Optional (`/pykit:report N`): what was actually built, and its deviations |
 
 ## Agents
 
@@ -212,6 +213,8 @@ claude plugin prune                                       # remove auto-installe
 | An agent ignores your edits | Edit `.claude/agents/<name>.md` in the project, not the plugin cache, then start a new session. Check that the file's `name:` matches the file name |
 | `claude --agent cody` opens a different Cody | The project has no `.claude/agents/cody.md`, so a user-level `~/.claude/agents/cody.md` wins. Re-run `setup.sh` to restore the project copy |
 | Cody says "no approved contract" | In the planner session run `plan phase N`, then `approve` |
+| Tools fail with "auto mode classifier gave no verdict" | A temporary Claude Code service error, not pykit. Wait and re-run the same command (`/pykit:review` resumes), or press shift+tab to leave auto mode in that terminal |
+| You ran the next command while agents were still working | Wait for the NEXT box. Orchestrating commands finish all their steps before printing it |
 | Tessma says "browser verification not performed" | Run `claude plugin install playwright@claude-plugins-official` and make sure Node/`npx` works |
 
 ## Project layout (this repo)

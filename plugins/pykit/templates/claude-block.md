@@ -3,7 +3,7 @@
 
 This project uses the Pykit plugin (https://github.com/preyashyadav/pykit).
 - Control docs: `SPEC.md`, `PLAN.md`, `DECISIONS.md`, and `STATE.md` (the tracker for all phases, with its **Next** block).
-- Per phase: `docs/phases/phase-NN.md` (the contract), `phase-NN-board.md` (findings and handoffs), and `phase-NN-report.md`.
+- Per phase: `docs/phases/phase-NN.md` (the contract), `phase-NN-board.md` (findings, handoffs, and the close-out checklist), and optionally `phase-NN-report.md` (`/pykit:report N`).
 - Agents: `.claude/agents/`. Edit them to customize.
 
 ### Terminals
@@ -20,7 +20,8 @@ Every `/pykit:*` command starts a fresh agent, so running one in the wrong termi
 | `/pykit:build N` | Cody | Creates or joins the phase branch, writes code and unit tests, makes Tessma's tests pass, fixes open findings |
 | `/pykit:test N` | Tessma | Writes acceptance, E2E, and edge-case tests from the contract only (in parallel with build) |
 | `/pykit:verify N` | Tessma | Runs everything, probes edge cases, does browser QA. PASS or FAIL with V# findings |
-| `/pykit:review N` | Revy, then Summa, Planck, Shipy | Close-out: review, then report, then sync the next phase, then commit. After the last phase, also runs the release check |
+| `/pykit:review N` | Revy, then Planck, Shipy | Close-out: review, then record deviations, then sync later phases, then commit. Resumable. After the last phase, also runs the release check |
+| `/pykit:report N` | Summa | On request only: the phase report |
 | `/pykit:ship N` | Shipy | Push and open a PR, or merge locally if there is no remote. `/pykit:ship N merge` finishes the merge |
 | `/pykit:status` | Summa | Prints the tracker and the Next step |
 | `/pykit:start N` | all | Autopilot: runs a whole phase in one terminal |
@@ -52,7 +53,7 @@ NEXT
 → T3: /pykit:test 2      (Tessma writes tests)   ← run both now
 Why: phase 1 merged; phase 2 approved.
 ```
-Close-out example: `→ T1: /pykit:review 1   (Revy reviews → Summa report → Planck sync → Shipy commit)`
+Close-out example: `→ T1: /pykit:review 1   (Revy reviews → Planck syncs later phases → Shipy commits)`
 
 ### Rules
 - Source of truth: the user's current instruction, then SPEC.md, accepted ADRs, the phase contract, PLAN.md, repo conventions.
@@ -60,4 +61,7 @@ Close-out example: `→ T1: /pykit:review 1   (Revy reviews → Summa report →
 - Tessma owns acceptance, E2E, and edge-case tests. Cody owns code, unit tests, and test tooling. Cody never edits Tessma's test files; he disputes them on the board.
 - Quality gates are exactly the commands in PLAN.md → Quality gates. Never invent one.
 - One branch per phase (`phase/NN-<slug>`) from an up-to-date `main`, merged before the next phase starts. Never push, merge, or deploy except through `/pykit:ship`.
+- Summa runs only when the user asks (`/pykit:report`, `/pykit:status`).
+- Orchestrating commands run their subagents in the foreground. Wait for the NEXT box before typing the next command.
+- If tools fail with "auto mode classifier gave no verdict", that's a transient Claude Code service error, not a pykit failure. Re-run the same command later (steps resume), or leave auto mode with shift+tab.
 <!-- pykit:end -->

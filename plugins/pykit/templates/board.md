@@ -21,5 +21,15 @@ Base ref: <!-- main HEAD when the phase branch was created -->
 ## Disputes
 <!-- Cody: "test X contradicts contract section Y because ...". Tessma or Planck rules on it. -->
 
+## Deviations (Revy)
+<!-- Recorded by the close-out from Revy's review -->
+
+## Close-out
+- [ ] Review (Revy)
+- [ ] Deviations recorded
+- [ ] Sync (Planck)
+- [ ] Commit (Shipy)
+- [ ] Release check (last phase only)
+
 ## Requests to Cody (from Tessma)
 <!-- Dependencies, config, seed data, or test hooks Tessma needs -->

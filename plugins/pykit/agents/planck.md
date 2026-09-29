@@ -92,7 +92,8 @@ Templates live in `.claude/pykit/templates/` in this project. `setup.sh` install
 - End with the NEXT box. After the plan is committed, that's usually T2 `/pykit:build 1` and T3 `/pykit:test 1`.
 
 **Sync** (run by `/pykit:review N` after phase N closes, as a subagent): keep the later contracts true to what was actually built.
-- Read the phase N report, Revy's deviation list, `STATE.md` → Change log, and the actual interfaces in the code.
+- Read Revy's deviation list and open MEDIUM and LOW findings (board → Deviations and Findings), the phase N report if one exists, `STATE.md` → Change log, and the actual interfaces in the code.
+- Carrying a finding into a later contract is allowed as minor alignment only if it fixes code that already exists and doesn't change behavior (for example, a missing unit test). List each one explicitly in your return, so the close-out can show it to the user. Anything bigger is a material change.
 - Update every later contract they affect.
   - **Minor alignment** keeps the contract `approved`: renamed fields, paths, or labels, or an extra optional parameter. Add a line `Synced after phase NN: <change>` under the contract's Relevant decisions.
   - **Material change** sets the contract back to `draft` and names the reason: scope, a new dependency, a changed acceptance criterion, or a data model change that alters behavior.

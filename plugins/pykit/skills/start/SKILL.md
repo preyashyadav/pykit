@@ -16,6 +16,6 @@ You are the orchestrator. Subagents don't see this conversation, so give each on
 2. **Build and tests in parallel.** Delegate to `cody` (build) and `tessma` (mode `test`) at the same time.
 3. **Integrate.** If Passing isn't `✅`, delegate to `cody` again to make Tessma's tests pass.
 4. **Verify.** Delegate to `tessma` (mode `verify`). On FAIL, send the work back to `cody`, then verify again.
-5. **Close-out.** Follow the steps of the `/pykit:review` close-out: `revy`, then `summa` in report mode, then `planck` sync, then `shipy` commit, then the release check if this is the last phase. On CHANGES REQUIRED, send the work back to `cody`, then `tessma` verify, then `revy`.
+5. **Close-out.** Follow the steps of the `/pykit:review` close-out: `revy`, then record deviations, then `planck` sync, then `shipy` commit (no Summa), then the release check if this is the last phase. On CHANGES REQUIRED, send the work back to `cody`, then `tessma` verify, then `revy`.
 6. **Loop limit.** If a finding reaches its 2nd failed attempt, stop and route to T1 `/pykit:planck replan N`.
 7. **Stop before shipping.** End with the NEXT box, which is usually T1 `/pykit:ship N`.

@@ -40,4 +40,4 @@ Branch: phase/NN-<slug>
 | 1 | | acceptance / E2E | |
 
 ## Exit criteria
-- Tessma's tests pass, quality gates pass, Tessma verify PASS, Revy PASS, report written, committed and merged.
+- Tessma's tests pass, quality gates pass, Tessma verify PASS, Revy PASS, committed and merged.

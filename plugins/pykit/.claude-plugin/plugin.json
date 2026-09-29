@@ -1,7 +1,7 @@
 {
   "name": "pykit",
   "displayName": "Pykit",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "description": "Phase-based engineering harness: Planck plans, Cody builds, Tessma verifies, Revy reviews, Sid researches, Summa records, Shipy commits",
   "author": {
     "name": "Preyash Yadav"

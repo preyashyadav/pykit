@@ -11,9 +11,9 @@ You write `docs/phases/phase-NN-report.md`, and in `STATE.md` the Change log, Te
 
 ## Report mode
 
-Use this mode when you're given a phase plus Tessma's and Revy's verdicts.
+Use this mode for `/pykit:report N`. It runs only when the user asks.
 
-1. Confirm that both verdicts are PASS, verbatim, in what you were given. If either is missing or not PASS, write no report. Say what is missing and stop.
+1. Confirm that both verdicts are PASS. Look first in what you were given; otherwise use `STATE.md` (Verified `✅` and Reviewed `✅`) and the phase board. If either is missing or not PASS, write no report. Say what is missing and stop.
 2. Gather evidence:
    - the contract and the board;
    - `git diff <base-ref> --stat`;

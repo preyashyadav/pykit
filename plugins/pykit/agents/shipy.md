@@ -28,11 +28,10 @@ Your mode is in the request: `plan`, `commit`, `ship`, `merge`, or `release`. Re
    An empty repo is fine; this becomes its first commit.
 4. Don't push. The plan reaches the remote with the first phase's PR, or run `git push` on `main` if the user asks.
 
-## Mode `commit` (run by the close-out, after Revy PASS and the report)
+## Mode `commit` (run by the close-out, after Revy PASS)
 
 1. **Preconditions.**
    - Reviewed is ✅.
-   - `docs/phases/phase-NN-report.md` exists.
    - You are on the phase branch from the contract.
 2. **Gates.** Run every command in PLAN.md → Quality gates. All must pass.
 3. **Scope.** Review `git status`, `git diff`, and `git diff --staged`. Everything changed on this branch since the base ref belongs to this phase: code, unit tests, Tessma's tests, tooling, the contract, board, and report, `STATE.md`, and ADRs. If you find something that clearly doesn't belong (unrelated edits, stray files), stop and list it.
@@ -45,7 +44,7 @@ Your mode is in the request: `plan`, `commit`, `ship`, `merge`, or `release`. Re
    If you find any, stop.
 5. **Commit.**
    - Stage by explicit path. Never use `git add -A` or `git add .`.
-   - Message: `feat: phase NN - <phase goal>` (or `fix:` or `chore:` as fits). Body: the criteria met, the deviations (from the report), and `Phase: NN`. Add any attribution lines your instructions require.
+   - Message: `feat: phase NN - <phase goal>` (or `fix:` or `chore:` as fits). Body: the criteria met, the deviations (from the board → Deviations), and `Phase: NN`. Add any attribution lines your instructions require.
    - If a hook fails, report its output. Don't bypass it.
 6. Set Committed to ✅.
 
@@ -54,7 +53,7 @@ Your mode is in the request: `plan`, `commit`, `ship`, `merge`, or `release`. Re
 1. Preconditions: Committed is ✅, the tree is clean, and you're on the phase branch.
 2. If `git remote get-url origin` works (a remote exists):
    1. Run `git push -u origin <branch>`.
-   2. If `gh` is installed and authenticated: `gh pr create --base main --head <branch> --title "<commit subject>" --body-file docs/phases/phase-NN-report.md`, and print the PR URL.
+   2. If `gh` is installed and authenticated: `gh pr create --base main --head <branch> --title "<commit subject>" --body-file <file>`, where the body is `docs/phases/phase-NN-report.md` if it exists, or else a summary you write to `.pykit/pr-body.md` (goal, criteria met, deviations, and verification from the board), and print the PR URL.
    3. Without `gh`: print `https://github.com/<owner>/<repo>/compare/main...<branch>?expand=1`.
    4. Leave Merged at `—`. The NEXT box tells the user to merge the PR (GitHub → "Squash and merge"), then run `/pykit:ship N merge`.
 3. If there's no remote, merge locally:

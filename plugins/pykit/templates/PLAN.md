@@ -44,4 +44,4 @@ Only commands that exist in this repository. Planck fills this in, and every age
 - Every acceptance criterion in SPEC.md has passing evidence.
 
 ## Definition of done (every phase)
-- Quality gates pass, Tessma's tests pass, Tessma verify PASS, Revy PASS, report written, phase committed and merged.
+- Quality gates pass, Tessma's tests pass, Tessma verify PASS, Revy PASS, phase committed and merged.
