@@ -26,3 +26,9 @@ TBD
 
 ## Acceptance criteria
 - [ ] TBD (Given / When / Then, or a command and its expected output)
+
+## Open questions
+Planck keeps this table current. `/pykit:planck questions` turns the stakeholder rows into a list you can take to users.
+
+| # | Question | Why it matters | Options (recommended first) | Assumption in use | Who answers | Blocks | Status |
+|---|---|---|---|---|---|---|---|

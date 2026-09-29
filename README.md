@@ -52,10 +52,19 @@ tmp="$(mktemp -d)" && git clone --depth 1 https://github.com/preyashyadav/pykit 
 Either way, when it finishes, **exit Claude and open a new session.** Accept the "trust this folder" prompt the first time.
 
 ### Step 2: Plan (terminal 1)
+
+Optional first step: write your rough requirements into `SPEC.md`, in any form.
+
 ```bash
 claude --agent pykit:planck
 ```
-1. Describe what you want to build. Planck asks focused questions, then writes `SPEC.md`, `PLAN.md` (architecture, quality gates, phased roadmap), and ADRs in `DECISIONS.md`.
+1. Describe what you want to build, or just say `go` to have Planck read `SPEC.md`. Planck plays back what it understood, then asks about the gaps.
+   - Every question explains its options: what each one means, its trade-off, and what it locks in later. Planck's recommendation comes first, marked **(Recommended)**.
+   - If you're not sure, choose *Other* and type `explain`. Planck briefs you from the project's own context, then asks again. You never need another agent to answer it.
+   - If only your users or client can answer, choose **Park it: ask stakeholders**. Planck records the question in `SPEC.md` → Open questions, together with the assumption it will use until you have an answer.
+   - Run `/pykit:planck questions` for a plain-language list of the parked questions to take to your users. Paste their answers back, and Planck carries on from there.
+
+   It then writes `SPEC.md`, `PLAN.md` (architecture, quality gates, phased roadmap), and ADRs in `DECISIONS.md`.
 2. Type `plan phase 1`. Planck writes `docs/phases/phase-01.md` with scope, interfaces, and acceptance criteria.
 3. Read the contract, then type `approve`. It becomes `Status: approved`, and the base commit is recorded.
 
@@ -89,7 +98,7 @@ Go back to terminal 1: `plan phase 2`, then `approve`. Then in terminal 2: `/pyk
 
 | Command | What it does | Runs as |
 |---|---|---|
-| `/pykit:planck [idea \| phase N \| approve N \| replan N]` | Plan the product, write or approve a phase contract, or re-plan | Current session, so it can ask you questions |
+| `/pykit:planck [idea \| questions \| phase N \| approve N \| replan N]` | Read the spec and interview you, list stakeholder questions, write or approve a phase contract, or re-plan | Current session, so it can ask you questions |
 | `/pykit:start [N]` | Run phase N end to end: preflight, build, gates, test, review, report. Stops before commit | Current session, as the orchestrator |
 | `/pykit:test [N]` | Verify phase N on its own | `pykit:tessma` in a fresh context |
 | `/pykit:review [N \| git-ref]` | Review a phase diff on its own | `pykit:revy` in a fresh context |

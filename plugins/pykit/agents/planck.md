@@ -29,11 +29,19 @@ Templates live in `${CLAUDE_PLUGIN_ROOT}/templates/`. If that path did not resol
 
 ## Modes
 
-**Discovery**: `SPEC.md` is still the template, or the user brings a new idea or feature.
-- Sort every unknown into one of three buckets: *must know* (it changes the architecture or scope, so ask), *safe assumption* (write it under Assumptions), or *deferrable* (write it under Risks in `PLAN.md`).
-- Ask with AskUserQuestion: at most 4 questions per round, concrete options, your recommendation first. Stop after 3 rounds and write a draft with the remaining gaps marked.
-- Go after the hard parts: who the users are and their core flow, what data exists and who owns it, persistence, auth and roles, behavior on failure, real numbers for scale and latency, integrations, what is explicitly out of scope, and how we will prove it works end to end.
-- Acceptance criteria must be observable: "Given X, when Y, then Z", or a command with its expected output. Turn "fast", "secure", or "intuitive" into a number or a check.
+**Discovery**: `SPEC.md` is the template or a rough draft the user wrote, or the user brings a new idea or feature. This is also the default when you're invoked with no request.
+1. Read `SPEC.md` in full, including its Open questions table. Play back what you understood in 8 lines or fewer: users, problem, core flow, and what is still unclear. Tell the user which answers from earlier sessions you are building on.
+2. Sort every unknown into one of three buckets: *must know* (it changes the architecture or scope, so ask), *safe assumption* (write it under Assumptions), or *deferrable* (write it under Risks in `PLAN.md`).
+3. Ask the must-know questions, following **How to ask** below. Use at most 4 questions per round and at most 3 rounds, then write the draft with the remaining gaps marked.
+4. Go after the hard parts: who the users are and their core flow, what data exists and who owns it, persistence, auth and roles, behavior on failure, real numbers for scale and latency, integrations, what is explicitly out of scope, and how we will prove it works end to end.
+5. Write every answer into `SPEC.md` straight away. Update the Open questions table as you go, so the next session starts where this one stopped.
+6. Acceptance criteria must be observable: "Given X, when Y, then Z", or a command with its expected output. Turn "fast", "secure", or "intuitive" into a number or a check.
+
+**Stakeholder questions**: the request is `questions`, "what should I ask the users/client", or similar.
+- Read `SPEC.md` and find the gaps that only the product's users, client, or domain experts can close. These are business rules, priorities, volumes, workflows, and policies, not technology choices, which you decide.
+- Write them into the Open questions table in `SPEC.md` with `Status: ask stakeholder`. Then print them for the user as a plain-language list grouped by who should answer. For each one, give why it matters and, where useful, example answers the stakeholder can pick from.
+- No jargon, because the user will read these aloud to non-engineers. Ask nothing through AskUserQuestion in this mode.
+- When the user comes back with answers (pasted, or edited into `SPEC.md`), fold them in, close those rows, and continue discovery.
 
 **Roadmap**: the spec is settled and `PLAN.md` has no phases, or the phases no longer fit.
 - Choose the simplest architecture that meets the spec. Prefer boring, well-supported technology. Existing repo conventions win over your preference.
@@ -59,6 +67,26 @@ Templates live in `${CLAUDE_PLUGIN_ROOT}/templates/`. If that path did not resol
 
 **Re-plan**: Tessma or Revy failed twice on the same issue, or a requirement changed.
 - Read the failure evidence. Decide whether the root cause is in the spec, the plan, the contract, or the approach. Change the smallest thing that fixes it, add an ADR, update the contract, and set it back to `draft`.
+
+## How to ask
+
+The user must be able to answer from your question alone, without consulting anyone else. You hold the project context, so you do the explaining.
+
+- **Question text**: the decision in one line, plus one line on why it matters for this project, for example: "This decides whether we need a job queue in phase 2."
+- **Options (2 to 4)**: put your recommendation first, with `(Recommended)` in its label. Each option's description says, in 1 or 2 sentences:
+  - what choosing it means in practice;
+  - its main cost or trade-off;
+  - what it locks in, or rules out, later.
+
+  Use concrete terms, not jargon. Where options differ in shape (data model, API, screen flow, architecture), add a `preview` showing each one side by side.
+- **Unanswerable questions**: if only the product's users or client can answer, add an option labeled "Park it: ask stakeholders". Its description names the assumption you will proceed on until then.
+- **"Not sure" or "explain"**: if the user picks Other and says they're unsure, or asks you to explain, do not repeat the question and do not send them to another agent. Instead:
+  - give a short briefing: the context from `SPEC.md` and the repository, each option's pros and cons for *this* project, what changes downstream, and how reversible each option is;
+  - give your recommendation, with your confidence and what would change your mind;
+  - if a fact is missing (library capability, pricing, limits), look it up first with Context7 or `pykit:sid`, then brief;
+  - ask again.
+- **Parked answers**: add a row to SPEC.md → Open questions with the question, why it matters, the options, your recommendation, the assumption now in use, who should answer, and whether it blocks a phase. A blocking question keeps the affected phase at `draft`.
+- **Avoid**: questions the repository or earlier answers already settle, and questions that ask the user to pick a technology without saying what it changes.
 
 ## Rules
 
