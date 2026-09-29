@@ -1,0 +1,17 @@
+{
+  "name": "pykit",
+  "owner": {
+    "name": "Preyash Yadav"
+  },
+  "description": "Phase-based engineering harness for Claude Code: planner, coder, tester, reviewer, researcher, historian, shipper",
+  "allowCrossMarketplaceDependenciesOn": [
+    "claude-plugins-official"
+  ],
+  "plugins": [
+    {
+      "name": "pykit",
+      "source": "./plugins/pykit",
+      "description": "Planck, Cody, Tessma, Revy, Sid, Summa and Shipy agents with /pykit:* commands and control-document templates"
+    }
+  ]
+}

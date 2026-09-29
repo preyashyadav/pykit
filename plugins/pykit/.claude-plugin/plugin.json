@@ -1,0 +1,23 @@
+{
+  "name": "pykit",
+  "displayName": "Pykit",
+  "version": "0.1.0",
+  "description": "Phase-based engineering harness: Planck plans, Cody builds, Tessma verifies, Revy reviews, Sid researches, Summa records, Shipy commits",
+  "author": {
+    "name": "Preyash Yadav"
+  },
+  "license": "MIT",
+  "keywords": [
+    "workflow",
+    "planning",
+    "review",
+    "testing",
+    "agents"
+  ],
+  "homepage": "https://github.com/preyashyadav/pykit",
+  "repository": "https://github.com/preyashyadav/pykit",
+  "dependencies": [
+    "playwright@claude-plugins-official",
+    "context7@claude-plugins-official"
+  ]
+}
