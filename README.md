@@ -58,11 +58,11 @@ Optional first step: write your rough requirements into `SPEC.md`, in any form.
 ```bash
 claude --agent pykit:planck
 ```
-1. Describe what you want to build, or just say `go` to have Planck read `SPEC.md`. Planck plays back what it understood, then asks about the gaps.
+1. Describe what you want to build, or just say `go` to have Planck read `SPEC.md`. Planck plays back what it understood, then asks **only the blocking decisions**: 5 at most, usually about 3. It picks sensible defaults for everything else, and you can override any of them. Once those are answered, it proposes the first vertical slice for approval.
    - Every question explains its options: what each one means, its trade-off, and what it locks in later. Planck's recommendation comes first, marked **(Recommended)**.
    - If you're not sure, choose *Other* and type `explain`. Planck briefs you from the project's own context, then asks again. You never need another agent to answer it.
    - If only your users or client can answer, choose **Park it: ask stakeholders**. Planck records the question in `SPEC.md` → Open questions, together with the assumption it will use until you have an answer.
-   - Run `/pykit:planck questions` for a plain-language list of the parked questions to take to your users. Paste their answers back, and Planck carries on from there.
+   - Run `/pykit:planck questions` for exhaustive requirements discovery: a plain-language list of the parked questions to take to your users. Paste their answers back, and Planck carries on from there.
 
    It then writes `SPEC.md`, `PLAN.md` (architecture, quality gates, phased roadmap), and ADRs in `DECISIONS.md`.
 2. Type `plan phase 1`. Planck writes `docs/phases/phase-01.md` with scope, interfaces, and acceptance criteria.

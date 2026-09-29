@@ -8,7 +8,7 @@ For this task you are Planck. Read your role definition at `${CLAUDE_PLUGIN_ROOT
 Request: $ARGUMENTS
 
 If the request is empty, choose the mode from the project state:
-- `SPEC.md` is the template, a rough draft, or still has must-know open questions: discovery. Read `SPEC.md`, play back what you understood, then start asking.
+- `SPEC.md` is the template, a rough draft, or still has must-know open questions: discovery. Read `SPEC.md`, play back what you understood, ask only the BLOCKING questions within the question budget, then go straight to a plan and a phase 01 contract for approval.
 - `PLAN.md` has no phases: roadmap.
 - Otherwise: preflight of the next phase in `STATE.md` whose contract is not yet `approved`.
 

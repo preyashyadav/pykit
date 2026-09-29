@@ -29,15 +29,23 @@ Templates live in `${CLAUDE_PLUGIN_ROOT}/templates/`. If that path did not resol
 
 ## Modes
 
-**Discovery**: `SPEC.md` is the template or a rough draft the user wrote, or the user brings a new idea or feature. This is also the default when you're invoked with no request.
+**Discovery**: `SPEC.md` is the template or a rough draft the user wrote, or the user brings a new idea or feature. This is also the default when you're invoked with no request. The goal is a buildable first contract with as few interruptions as possible. A senior engineer separates what needs a human decision from what needs engineering judgment.
 1. Read `SPEC.md` in full, including its Open questions table. Play back what you understood in 8 lines or fewer: users, problem, core flow, and what is still unclear. Tell the user which answers from earlier sessions you are building on.
-2. Sort every unknown into one of three buckets: *must know* (it changes the architecture or scope, so ask), *safe assumption* (write it under Assumptions), or *deferrable* (write it under Risks in `PLAN.md`).
-3. Ask the must-know questions, following **How to ask** below. Use at most 4 questions per round and at most 3 rounds, then write the draft with the remaining gaps marked.
-4. Go after the hard parts: who the users are and their core flow, what data exists and who owns it, persistence, auth and roles, behavior on failure, real numbers for scale and latency, integrations, what is explicitly out of scope, and how we will prove it works end to end.
-5. Write every answer into `SPEC.md` straight away. Update the Open questions table as you go, so the next session starts where this one stopped.
+2. Triage every ambiguity:
+   - **BLOCKING**: it changes user-visible behavior, scope, interfaces, security, the data model, persistence, or acceptance criteria, and there is no safe conventional default. Ask these.
+   - **IMPORTANT**: it meaningfully affects the architecture but has a safe conventional default. Don't ask. Pick the default, write it under Assumptions with a one-line reason, and list it in your summary so the user can override it.
+   - **MINOR**: a reversible implementation detail. Never ask. Decide it, and record it in `PLAN.md` only if someone would otherwise wonder why.
+   - Questions only the product's users or client can answer go to the Open questions table with a working assumption. Don't ask them here unless they are BLOCKING.
+3. **Question budget**: ask 5 or fewer questions in total before producing the first plan. Aim for 3. Ask them in 1 or 2 rounds, following **How to ask** below. If more than 5 are truly BLOCKING, ask the 5 that unblock phase 01, and park the rest as Open questions that block later phases. If the user signals time pressure ("quick", "interview", "time-boxed"), ask 3 at most.
+4. Check coverage of the hard parts without asking about each one: users and their core flow, data and its ownership, persistence, auth and roles, behavior on failure, scale and latency numbers, integrations, what is out of scope, and end-to-end proof. Most of these get defaults, not questions.
+5. Write every answer and every default into `SPEC.md` straight away. Update the Open questions table as you go, so the next session starts where this one stopped.
 6. Acceptance criteria must be observable: "Given X, when Y, then Z", or a command with its expected output. Turn "fast", "secure", or "intuitive" into a number or a check.
+7. Once the BLOCKING questions are answered, don't wait to be asked. Say "Requirements are sufficient for the first vertical slice", then:
+   - write `PLAN.md` and phase 01 (Roadmap mode, then Preflight mode);
+   - show a short summary of the slice, the defaults you chose, and the parked questions;
+   - ask for approval.
 
-**Stakeholder questions**: the request is `questions`, "what should I ask the users/client", or similar.
+**Stakeholder questions**: the request is `questions`, "what should I ask the users/client", or similar. This is exhaustive requirements discovery, a separate job from Discovery mode: there is no question budget, and 18 or more questions is fine.
 - Read `SPEC.md` and find the gaps that only the product's users, client, or domain experts can close. These are business rules, priorities, volumes, workflows, and policies, not technology choices, which you decide.
 - Write them into the Open questions table in `SPEC.md` with `Status: ask stakeholder`. Then print them for the user as a plain-language list grouped by who should answer. For each one, give why it matters and, where useful, example answers the stakeholder can pick from.
 - No jargon, because the user will read these aloud to non-engineers. Ask nothing through AskUserQuestion in this mode.
